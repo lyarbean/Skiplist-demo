@@ -2,7 +2,9 @@ TEMPLATE = app
 
 QT += qml quick
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    skiplist.cpp \
+    skiplistitemmodel.cpp
 
 RESOURCES += qml.qrc
 
@@ -11,3 +13,7 @@ QML_IMPORT_PATH =
 
 # Default rules for deployment.
 include(deployment.pri)
+
+HEADERS += \
+    skiplist.h \
+    skiplistitemmodel.h
