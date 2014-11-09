@@ -20,16 +20,19 @@ public:
     size_t size () const { return length; }
     bool insert ( const QString& element );
     NodeItemRef find ( const QString& element ) const;
+    // return preceding nodes in @a precedings for @a element
+    NodeItemRef find (const QString& element, QVector<NodeItemRef>& precedings) const;
+    bool find_precedings (const QString& element, QVector<NodeItemRef>& precedings) const;
+    QString operator()();
+    void veto();
 signals:
 
 public slots:
 private:
     int randomize();
-    void link(const QVector<NodeItemRef>& precedings, const NodeItemRef node);
 private:
     QVector<NodeItemRef> list;
     size_t length;
     // Height = Skip.size();
 };
-
 #endif // SKIPLIST_H

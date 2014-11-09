@@ -1,148 +1,188 @@
 #include "skiplist.h"
 #include <QTime>
-SkipList::SkipList( QObject *parent ) :
-    QObject( parent ), length( 0 )
+#include <QDebug>
+
+SkipList::SkipList(QObject* parent) :
+    QObject(parent), length(0)
 {
-    qsrand(QTime::currentTime().msecsSinceStartOfDay ());
+    qsrand(QTime::currentTime().msecsSinceStartOfDay());
 }
 
-int SkipList::randomize () {
+int SkipList::randomize()
+{
     int level = 1;
-    while (qrand() < (RAND_MAX>>1) && level <= list.size())
-    {
+    int current_height = list.size();
+    while (qrand() < (RAND_MAX >> 1) && level <= current_height) {
         level ++;
     }
     return level;
 }
-bool SkipList::insert ( const QString& element ) {
+bool SkipList::insert(const QString& element)
+{
+    //    qDebug() << "To Insert " << element;
     if (list.empty()) {
-        NodeItemRef node = new NodeItem (element);
-        node->forward.append (0);
-        list.append ( node );
+        NodeItemRef node = new NodeItem(element);
+        node->forward.fill(0, 1);
+        list.append(node);
+        length++;
         return true;
     }
-
-    // x is current check point
-    NodeItemRef x = list.first ();
-    // z is the node to insert
-    NodeItemRef z = new NodeItem (element);
-    // Case 1:
-    // |-> (z = x)
-    if (element == x->element) {
-        delete z;
+    QVector<NodeItemRef> p;
+    if (!find_precedings(element, p)) {
+        qDebug() << element << "Failed";
         return false;
     }
-    // Case 2:
-    // |->z->x
-    if (element < x->element) {
-        int level = randomize ();
-        z->forward.fill ( 0, level );
-        for (int i = 0; i < list.size (); ++i)
-        {
-            if (list.at (i)->element < element) {
-                z->forward[i] = list.at (i);
-                list[i] = z;
-            }
+    int level = randomize();
+    NodeItemRef z = new NodeItem(element);
+    z->forward.fill(0, level);
+    int h = qMin(p.size(), level);
+    for (int i = 0; i < h; ++i) {
+        if (p.value(i)) {
+            z->forward[i] = p.value(i)->forward.value(i);
+            p.value(i)->forward[i] = z;
+        } else {
+            z->forward[i] = list.value(i);
+            list[i] = z;
         }
-        if (level > list.size ()) {
-            list.append (z);
+    }
+    if (level > p.size()) {
+        list.append(z);
+    }
+    length++;
+    return true;
+}
+
+
+// Return false if one match
+bool SkipList::find_precedings(const QString& element, QVector<NodeItemRef>& precedings) const
+{
+    if (list.empty()) {
+        return true;
+    }
+    int height = list.size();
+    precedings.fill(0, height);
+    NodeItemRef x = list.last();
+    int h = height - 1;
+    // Find one node that less than element
+    while (x->element >= element && h) {
+        if (x->element == element) {
+            return false;
         }
+        --h;
+        x = list.value(h);
+    }
+    // Prepend
+    if (h == 0 && x->element >= element) {
         return true;
     }
 
-    // find a y such that:
-    // x --------> y := x.f
-    // x --> z --> y
-    // where y.element > z.element and x.element < y.element
-    int current_level = list.size ();
-    for (int i = current_level - 1; i >= 0; --i) {
-        if ( list.at (i)->element < element ) {
-            x = list.at (i);
-        }
-    }
-    QVector<NodeItemRef> precedings;
-    int level = randomize ();
-    precedings.fill (0, level);
-    for (int i = x->forward.size () - 1; i >= 0; --i) {
-        while (x->forward.at (i)->element >= element)
-        {
-            x = x->forward.at (i);
-        }
-        if (x->element < element) {
-            precedings[i] = x;
-        }
-        else if (x->element == element) { // Case 3: (x = z) --> y
-            delete z;
+    while (x && h >= 0) {
+        if (x->element == element) {
             return false;
         }
-        else
-        {
-            throw std::bad_exception;
-        }
-    }
-    /**
-    for (int i = 0; i < level; ++i) {
-        if (precedings.at (i)->element >= element) {
-            throw std::bad_exception;
-        }
-    }
-    **/
-    // Case 4:
-    // x --> z --> y (*|0)
-
-    NodeItemRef y;
-    Try:
-    y = x->forward.at (0);
-    z->forward[0] = y;
-    if (y->forward.at (0)) {
-        if (y->element == element) {
-            delete z;
-            return false;
-        } else if (y->element < element) {
+        NodeItemRef y = x->forward.value(h);
+        // Move forwards if possible
+        while (y && y->element < element) {
             x = y;
-            goto Try;
-        } else {
-            // build link
+            y = y->forward.value(h);
         }
-    } else {
-
-    }
-}
-
-
-void SkipList::link(const QVector<NodeItemRef>& precedings, const NodeItemRef node) {
-    NodeItemRef x;
-    for (int i = node->forward.size () - 1; i > 0; ++i) {
-        x = 0;
-        if (precedings.at (i) == 0) {
-            x = list.at (i);
-            if (x == 0) {
-                list[i] = node;
-                goto Next_I;
-            }
-        } else {
-            x = precedings.at (i);
+        if (y && y->element == element) {
+            return false;
         }
-        if (x) {
-            if (x->element == node->element) {
-                if (x != node) {} // FIXME
-            } else if (x->element > node->element) {
-                list[i] = node;
-                node->forward[i] = x;
-                goto Next_I;
-            } else {
-                NodeItemRef y = x->forward[i];
-                while (y &&  y->element < node->element) {
-                    x = y;
-                    y = x->forward[i];
+        // mark preceding node, when y->element > element
+        if (y) { // x --> e --> y
+            while (y->element > element) {
+                precedings[h] = x;
+                if (!h) {
+                    break;
                 }
-                x->forward[i] = node;
-                node->forward[i] = y;
+                --h;
+                y = x->forward.value(h);
+            }
+            if (h == 0) {
+                y = x->forward.value(0);
+                while (y && y->element < element) {
+                    x = y;
+                    y = y->forward.value(0);
+                }
+                if (y && y->element == element) {
+                    return false;
+                }
+                precedings[0] = x;
+                return true;
+            }
+        } else {  // it stops when y is 0, try to get one not null forward, downwards
+            while (h && !y) {
+                precedings[h] = x;
+                --h;
+                y = x->forward.value(h);
+            }
+            if (h == 0) {
+                y = x->forward.value(0);
+                while (y && y->element < element) {
+                    x = y;
+                    y = y->forward.value(0);
+                }
+                if (y && y->element == element) {
+                    return false;
+                }
+                precedings[0] = x;
+                return true;
             }
         }
-        Next_I:
     }
-}
-NodeItemRef SkipList::find ( const QString &element ) const {
+    return true;
 }
 
+NodeItemRef SkipList::find(const QString& element) const
+{
+    QVector<NodeItemRef> p;
+    if (find_precedings(element, p)) {
+        return p.value(0)->forward.value(0);
+    }
+    return 0;
+}
+
+NodeItemRef SkipList::find(const QString& element, QVector<NodeItemRef>& precedings) const
+{
+
+    if (find_precedings(element, precedings)) {
+        return precedings.value(0)->forward.value(0);
+    }
+    return 0;
+}
+
+QString SkipList::operator()()
+{
+    QString string;
+    if (list.empty()) {
+        string = "Empty";
+        return string;
+    }
+    NodeItemRef x = list.value(0);
+    while (x) {
+        string += (x->element);
+        string += (" --> ");
+        x = x->forward[0];
+    }
+    string.append(" Nil");
+    return string;
+}
+
+void SkipList::veto()
+{
+
+    if (list.empty()) {
+        return;
+    }
+    int height = list.size();
+    for (int i = 0; i < height; ++i) {
+        NodeItemRef x = list.value(i);
+        while (x->forward[i]) {
+            if (x->element >= x->forward[i]->element) {
+                qDebug() << "Error";
+            }
+            x = x->forward[i];
+        }
+    }
+}
