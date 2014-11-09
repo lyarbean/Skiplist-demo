@@ -28,7 +28,7 @@ bool SkipList::insert(const QString& element)
         return true;
     }
     QVector<NodeItemRef> p;
-    if (!find_precedings(element, p)) {
+    if (!findPrecedings(element, p)) {
         qDebug() << element << "Failed";
         return false;
     }
@@ -54,7 +54,7 @@ bool SkipList::insert(const QString& element)
 
 
 // Return false if one match
-bool SkipList::find_precedings(const QString& element, QVector<NodeItemRef>& precedings) const
+bool SkipList::findPrecedings(const QString& element, QVector<NodeItemRef>& precedings) const
 {
     if (list.empty()) {
         return true;
@@ -137,7 +137,7 @@ bool SkipList::find_precedings(const QString& element, QVector<NodeItemRef>& pre
 NodeItemRef SkipList::find(const QString& element) const
 {
     QVector<NodeItemRef> p;
-    if (find_precedings(element, p)) {
+    if (findPrecedings(element, p)) {
         return p.value(0)->forward.value(0);
     }
     return 0;
@@ -146,7 +146,7 @@ NodeItemRef SkipList::find(const QString& element) const
 NodeItemRef SkipList::find(const QString& element, QVector<NodeItemRef>& precedings) const
 {
 
-    if (find_precedings(element, precedings)) {
+    if (findPrecedings(element, precedings)) {
         return precedings.value(0)->forward.value(0);
     }
     return 0;

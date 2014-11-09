@@ -22,7 +22,7 @@ public:
     NodeItemRef find ( const QString& element ) const;
     // return preceding nodes in @a precedings for @a element
     NodeItemRef find (const QString& element, QVector<NodeItemRef>& precedings) const;
-    bool find_precedings (const QString& element, QVector<NodeItemRef>& precedings) const;
+    bool findPrecedings (const QString& element, QVector<NodeItemRef>& precedings) const;
     QString operator()();
     void veto();
 signals:
