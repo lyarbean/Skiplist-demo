@@ -71,8 +71,13 @@ bool SkipList::findPrecedings(const QString& element, QVector<NodeItemRef>& prec
         x = list.value(h);
     }
     // Prepend
-    if (h == 0 && x->element >= element) {
-        return true;
+    if (h == 0) {
+        if (x->element > element) {
+            return true;
+        }
+        if (x->element == element) {
+            return false;
+        }
     }
 
     while (x && h >= 0) {
@@ -124,18 +129,82 @@ bool SkipList::findPrecedings(const QString& element, QVector<NodeItemRef>& prec
 
 NodeItemRef SkipList::find(const QString& element) const
 {
-    QVector<NodeItemRef> p;
-    if (findPrecedings(element, p)) {
-        return p.value(0)->forward.value(0);
+    if (list.empty ()) {
+        return 0;
     }
-    return 0;
+    QVector<NodeItemRef> p;
+    return find (element, p);
 }
 
 NodeItemRef SkipList::find(const QString& element, QVector<NodeItemRef>& precedings) const
 {
+    if (list.empty()) {
+        return 0;
+    }
+    int height = list.size();
+    precedings.fill(0, height);
+    NodeItemRef x = list.last();
+    int h = height - 1;
+    // Find one node that less than element, downwards
+    while (x->element >= element && h) {
+        if (x->element == element) {
+            return x;
+        }
+        --h;
+        x = list.value(h);
+    }
+    if (h == 0) {
+        if (x->element > element) {
+            return 0;
+        }
+        if (x->element == element) {
+            return x;
+        }
+    }
 
-    if (findPrecedings(element, precedings)) {
-        return precedings.value(0)->forward.value(0);
+    while (x && h >= 0) {
+        if (x->element == element) {
+            return x;
+        }
+        NodeItemRef y = x->forward.value(h);
+        // Move forwards if possible
+        while (y && y->element < element) {
+            x = y;
+            y = y->forward.value(h);
+        }
+        if (y && y->element == element) {
+            return x;
+        }
+        // mark preceding node, when y->element > element
+        if (y) { // x --> e --> y
+            while (y->element > element) {
+                precedings[h] = x;
+                if (!h) {
+                    break;
+                }
+                --h;
+                y = x->forward.value(h);
+            }
+        } else {  // it stops when y is 0, try to get one not null forward, downwards
+            while (h && !y) {
+                precedings[h] = x;
+                --h;
+                y = x->forward.value(h);
+            }
+        }
+        if (h == 0) {
+            y = x->forward.value(0);
+            while (y && y->element < element) {
+                x = y;
+                y = y->forward.value(0);
+            }
+            if (y && y->element == element) {
+                return x;
+            }
+            precedings[0] = x;
+            return 0;
+        }
+
     }
     return 0;
 }
@@ -174,4 +243,37 @@ void SkipList::veto()
         }
     }
     qDebug() << "length:" << length;
+}
+
+// Linear search, thanks to the virtue of list
+NodeItemRef SkipList::at(int row) const
+{
+    if (row >= length) {
+        return 0;
+    }
+    NodeItemRef x = list.value(0);
+    while (row) {
+        x = x->forward.value (0);
+        --row;
+    }
+    return x;
+}
+
+int SkipList::indexOf (NodeItemRef node) const {
+    if (!node) {
+        return -2;
+    }
+    if (list.empty ()) {
+        return -1;
+    }
+    int index = 0;
+    NodeItemRef x = list.value(0);
+    while ( x && x != node ) {
+        x = x->forward.value (0);
+        ++index;
+    }
+    if (!x) {
+        return -1;
+    }
+    return index;
 }

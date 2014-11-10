@@ -12,12 +12,13 @@ struct NodeItem
     QString element;
 };
 
+Q_DECLARE_METATYPE(QVector<NodeItemRef>)
 class SkipList : public QObject
 {
     Q_OBJECT
 public:
     explicit SkipList( QObject *parent = 0 );
-    size_t size () const { return length; }
+    int size () const { return length; }
     bool insert ( const QString& element );
     NodeItemRef find ( const QString& element ) const;
     // return preceding nodes in @a precedings for @a element
@@ -25,14 +26,13 @@ public:
     bool findPrecedings (const QString& element, QVector<NodeItemRef>& precedings) const;
     QString operator()();
     void veto();
-signals:
-
-public slots:
+    NodeItemRef at(int row) const;
+    int indexOf (NodeItemRef node) const;
 private:
     int randomize();
 private:
     QVector<NodeItemRef> list;
-    size_t length;
+    int length;
     // Height = Skip.size();
 };
 #endif // SKIPLIST_H
