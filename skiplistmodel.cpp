@@ -15,16 +15,19 @@ QVariant SkipListModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid()) {
         return QVariant();
     }
-//    NodeItemRef node = sk.at (index.row());
-//    qDebug () << "Index.row" << index.row ();
-    if (role == Qt::DisplayRole) {
-        return QVariant::fromValue(nodes.value (index.row ()));
-    } else if (role == Qt::ForegroundRole) {
-        QStringList color_names = QColor::colorNames();
-        return color_names.value (index.row() % 20);
-    } else if (role == Qt::DecorationRole) {
-        // TODO Get indices of forwarding nodes
-        return QVariant::fromValue<QVector<NodeItemRef> >(sk.at (index.row())->forward);
+    int r = index.row ();
+    NodeItemRef node = sk.at (r);
+    //    qDebug () << "Index.row" << index.row ();
+    if (role == ElementRole) {
+        return QVariant::fromValue(node->element);
+    } else if (role == IndexRole) {
+        return QVariant::fromValue(r);
+    } else if (role == ForwardRole) {
+        QVector<int> forward;
+        for (int i = 0; i < node->forward.size (); ++i) {
+            forward.append (sk.indexOf (node->forward.value (i)));
+        }
+        return QVariant::fromValue(forward);
     }
 
     return QVariant();
@@ -40,16 +43,24 @@ Qt::ItemFlags SkipListModel::flags(const QModelIndex& index) const /* return Ite
 
 void SkipListModel::addItem(const QString& string)
 {
-    if (sk.insert (string)) {
-        QVector<NodeItemRef> p;
-        NodeItemRef node = sk.find (string);
-        int index = sk.indexOf (node);
-        qDebug () << "Index " << index;
-        beginInsertRows(QModelIndex(), index, index + 1);
-        nodes.insert (index, string);
-        endInsertRows();
-        emit countChanged(count());
+    QVector<NodeItemRef> p;
+    NodeItemRef node = sk.find (string, p);
+    if (node) {
+        return;
     }
+    int index = 0;
+    for (int i = 0; i < p.size (); ++i) {
+        if (p.value (i)) {
+            index = sk.indexOf (p.value (i)) +1;
+            break;
+        }
+    }
+    if (sk.insert (string)) {
+        beginInsertRows(QModelIndex(), index, index);
+        endInsertRows();
+    }
+    sk.veto ();
+    qDebug () << sk();
 }
 
 int SkipListModel::count() const

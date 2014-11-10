@@ -228,7 +228,6 @@ QString SkipList::operator()()
 
 void SkipList::veto()
 {
-
     if (list.empty()) {
         return;
     }
@@ -246,15 +245,15 @@ void SkipList::veto()
 }
 
 // Linear search, thanks to the virtue of list
-NodeItemRef SkipList::at(int row) const
+NodeItemRef SkipList::at(int index) const
 {
-    if (row >= length) {
+    if (index < 0 || index >= length) {
         return 0;
     }
     NodeItemRef x = list.value(0);
-    while (row) {
+    while (index) {
         x = x->forward.value (0);
-        --row;
+        --index;
     }
     return x;
 }

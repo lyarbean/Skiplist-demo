@@ -11,18 +11,27 @@ Window {
 
     ListView {
         width: 1360
-        height: 800
+        height: 100
         model: the_model
-        anchors.centerIn: parent
+        anchors.fill: parent
         orientation : Qt.Horizontal
         delegate:
             Rectangle {
             width: 80
-            color: "gray"; radius: 5
+            color: "gray"
+            radius: 5
+            Column {
                 Text {
-                    text : model.display
+                    text : model.index
+                }
+                Text {
+                    text : model.element
+                }
+                Text {
+                    text : model.forward()
                 }
             }
+        }
         highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
         focus: true
         MouseArea {

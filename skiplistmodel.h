@@ -14,12 +14,22 @@ public:
     Qt::ItemFlags flags(const QModelIndex & index) const; // return ItemIsEditable
     Q_INVOKABLE void addItem (const QString& string);
     int count() const;
+    enum ListModeRole {
+        ElementRole = Qt::UserRole + 1,
+        ForwardRole,
+        IndexRole
+    };
+    QHash<int,QByteArray> roleNames() const {
+        QHash<int, QByteArray> roles;
+        roles[ElementRole] = "element";
+        roles[ForwardRole] = "forward";
+        return roles;
+    }
 signals:
 
 void countChanged(int);
 private:
     SkipList sk;
-    QList<QString> nodes;
 };
 
 #endif // SKIPLISTITEMMODEL_H

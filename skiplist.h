@@ -26,13 +26,12 @@ public:
     bool findPrecedings (const QString& element, QVector<NodeItemRef>& precedings) const;
     QString operator()();
     void veto();
-    NodeItemRef at(int row) const;
+    NodeItemRef at(int index) const;
     int indexOf (NodeItemRef node) const;
 private:
     int randomize();
 private:
     QVector<NodeItemRef> list;
     int length;
-    // Height = Skip.size();
 };
 #endif // SKIPLIST_H
