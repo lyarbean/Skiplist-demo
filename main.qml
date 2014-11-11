@@ -29,7 +29,7 @@ Window {
                             x: parent.x + 24
                             y: parent.y + 12
                             height: 2
-                            color: "gray"
+                            color: ["red", "orange", "yellow", "green", "blue", "indigo", "purple"][index]
                             width: modelData < 0 ? 0 : (modelData - offset) * 32
                         }
                         Text {
