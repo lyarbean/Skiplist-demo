@@ -3,13 +3,20 @@
 
 #include <QObject>
 #include <QVector>
-struct NodeItem;
+class NodeItem;
 typedef NodeItem* NodeItemRef;
-struct NodeItem
+class NodeItem : public QObject
 {
+    Q_OBJECT
+    Q_PROPERTY (QString element MEMBER element )
+    Q_PROPERTY (QVector<NodeItemRef> forward MEMBER forward  NOTIFY forwardChanged)
+public:
     explicit NodeItem(const QString& e) : element (e) {}
+
     QVector<NodeItemRef> forward;
     QString element;
+signals:
+    void forwardChanged();
 };
 
 Q_DECLARE_METATYPE(QVector<NodeItemRef>)

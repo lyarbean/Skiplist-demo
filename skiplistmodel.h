@@ -17,19 +17,23 @@ public:
     enum ListModeRole {
         ElementRole = Qt::UserRole + 1,
         ForwardRole,
-        IndexRole
+        OffsetRole
     };
     QHash<int,QByteArray> roleNames() const {
         QHash<int, QByteArray> roles;
         roles[ElementRole] = "element";
         roles[ForwardRole] = "forward";
+        roles[OffsetRole] = "offset";
         return roles;
     }
+//    bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+
 signals:
 
 void countChanged(int);
 private:
     SkipList sk;
+    QList<NodeItemRef> nodes;
 };
 
 #endif // SKIPLISTITEMMODEL_H
