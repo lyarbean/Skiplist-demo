@@ -26,7 +26,7 @@ bool SkipList::insert( const QString& element )
         length++;
         return true;
     }
-    QVector<NodeItemRef> p;
+    ForwardNodes p;
     if ( !findPrecedings( element, p ) ) {
         qDebug() << element << "Failed";
         return false;
@@ -44,7 +44,6 @@ bool SkipList::insert( const QString& element )
             list[i] = z;
         }
     }
-
     if ( level > p.size() ) {
         list.append( z );
     }
@@ -53,7 +52,7 @@ bool SkipList::insert( const QString& element )
 }
 
 // Return false if one match
-bool SkipList::findPrecedings( const QString& element, QVector<NodeItemRef>& precedings ) const
+bool SkipList::findPrecedings( const QString& element, ForwardNodes& precedings ) const
 {
     if ( list.empty() ) {
         return true;
@@ -131,11 +130,11 @@ NodeItemRef SkipList::find( const QString& element ) const
     if ( list.empty() ) {
         return 0;
     }
-    QVector<NodeItemRef> p;
+    ForwardNodes p;
     return find( element, p );
 }
 
-NodeItemRef SkipList::find( const QString& element, QVector<NodeItemRef>& precedings ) const
+NodeItemRef SkipList::find( const QString& element, ForwardNodes& precedings ) const
 {
     if ( list.empty() ) {
         return 0;
@@ -207,6 +206,21 @@ NodeItemRef SkipList::find( const QString& element, QVector<NodeItemRef>& preced
     return 0;
 }
 
+NodeItemRef SkipList::remove (const QString &element) {
+    ForwardNodes p;
+    if (findPrecedings (element, p)) {
+        NodeItemRef x = p.value (0)->forward.value (0);
+        Q_ASSERT(x);
+        int h = p.size ();
+        for (int i = 0; i < h; ++i) {
+            p.value (i)->forward[i] = x->forward.value (i);
+        }
+        emit passBy (p);
+        return x;
+    }
+    return 0;
+}
+
 QString SkipList::operator()()
 {
     if ( list.empty() ) {
@@ -274,5 +288,22 @@ int SkipList::indexOf( NodeItemRef node ) const {
     if ( !x || x != node ) {
         return -1;
     }
+    return index;
+}
+
+int SkipList::indexFor (const QString &element) const {
+    if ( list.empty() ) {
+        return -1;
+    }
+    int index = 0;
+    NodeItemRef x = list.value( 0 );
+    while ( x && x->element < element ) {
+        x = x->forward.value( 0 );
+        ++index;
+    }
+    if ( x && x->element == element ) {
+        return -1;
+    }
+
     return index;
 }

@@ -4,7 +4,8 @@ QT += qml quick
 
 SOURCES += main.cpp \
     skiplist.cpp \
-    skiplistmodel.cpp
+#    skiplistmodel.cpp \
+    skiplistitemmodel.cpp
     
 
 RESOURCES += qml.qrc
@@ -19,5 +20,6 @@ include(deployment.pri)
 
 HEADERS += \
     skiplist.h \
-    skiplistmodel.h 
+#    skiplistmodel.h \
+    skiplistitemmodel.h
 

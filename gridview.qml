@@ -1,13 +1,18 @@
 import QtQuick 2.3
 import QtQuick.Window 2.2
-import SkipListModel 1.0
+//import SkipListModel 1.0
+import SkipListItemModel 1.0
 Window {
-    visible: true
+    // delay to show
+    visible: false
     Component.onCompleted: {
-        showMaximized();
-    }
 
-    SkipListModel {
+        show();
+    }
+    minimumHeight: 480
+    minimumWidth: 480
+    // SkipListModel {
+    SkipListItemModel {
         id: the_model
     }
 
@@ -56,37 +61,45 @@ Window {
             model: the_model
             focus: true
             orientation: Qt.Horizontal
-            cacheBuffer: 10
+            cacheBuffer: 1
             add: Transition {
-                 NumberAnimation { properties: "x,y"; from: 100; duration: 1000 }
-             }
+                NumberAnimation { properties: "x,y"; from: 100; duration: 1000 }
+            }
             delegate: Column {
                 spacing: 8
                 Text {
-                    id: offsetRect
-                    width: 32
+                    width: 64
                     color: "#333333"
-                    text: model.offset
+                    text: index + ":" + (element ? element : "")
                     font.bold: true
                 }
-                Text {
-                    id: eleRect
-                    width: 32
-                    color: "#444444"
-                    text: model.element
+                Rectangle {
+                    width: 64
+                    height: forward * 32
+                    color: ["red", "orange", "yellow", "green", "blue", "indigo", "purple"][forward % 7]
                 }
-                Loader {
-                    id: forward_loader
-                    sourceComponent: forwardDelegate
-                    onStatusChanged: {
-                        item.model = model.forward
-                        item.offset = model.offset
+                Rectangle {
+                    width: 64
+                    height: (the_model.height() - forward) * 32
+                    ListView {
+                        anchors.fill: parent
+                        model : the_model.height() - forward
+                        delegate :
+                            Rectangle {
+                            height: 32
+                            Rectangle {
+                                width: 64
+                                anchors.leftMargin: 0
+                                anchors.topMargin: 30
+                                color : "gray"
+                                height: 4
+                            }
+                        }
                     }
+                    // color: ["red", "orange", "yellow", "green", "blue", "indigo", "purple"][forward % 7]
                 }
-
             }
         }
-
         Rectangle {
             color: "lightsteelblue"
             width: 128
@@ -99,20 +112,20 @@ Window {
                 Keys.onReturnPressed: {
                     the_model.addItem(text)
                     text = ""
-                    the_skip_list.forceLayout()
+                    timer.start()
                 }
             }
-
+            Timer {
+                id: timer
+                interval: 500;
+                running: false; repeat: true
+                onTriggered: {
+                    the_skip_list.forceLayout()
+                    stop()
+                }
+            }
         }
     }
 }
-//        Keys.onUpPressed:  {
-//            the_skip_list.scale = the_skip_list.scale * 1.25
-//        }
-//        Keys.onDownPressed: {
-//            the_skip_list.scale = the_skip_list.scale * 0.8
-//        }
-
-
 
 

@@ -1,19 +1,24 @@
 #ifndef SKIPLISTITEMMODEL_H
 #define SKIPLISTITEMMODEL_H
-#include <QAbstractListModel>
+
+#include <QAbstractItemModel>
 #include "skiplist.h"
 
-class SkipListModel : public QAbstractListModel
+class SkipListListModel : public QAbstractListModel
 {
     Q_OBJECT
-    Q_PROPERTY(int count READ count NOTIFY countChanged)
+//    Q_PROPERTY(int count READ count NOTIFY countChanged)
 public:
-    explicit SkipListModel(QObject *parent = 0);
+    explicit SkipListListModel(QObject *parent = 0);
+    Qt::ItemFlags flags(const QModelIndex &index) const;
     Q_INVOKABLE int rowCount(const QModelIndex & parent = QModelIndex()) const;
+//    Q_INVOKABLE int columnCount(const QModelIndex & parent = QModelIndex()) const;
+    QModelIndex parent(const QModelIndex & index) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
-    Qt::ItemFlags flags(const QModelIndex & index) const; // return ItemIsEditable
+    // Qt::ItemFlags flags(const QModelIndex & index) const; // return ItemIsEditable
     Q_INVOKABLE void addItem (const QString& string);
-    int count() const;
+    // int count() const;
+    Q_INVOKABLE int height ();
     enum ListModeRole {
         ElementRole = Qt::UserRole + 1,
         ForwardRole,
@@ -28,10 +33,11 @@ public:
     }
 signals:
 
-void countChanged(int);
+//void countChanged(int);
 
 private:
     SkipList sk;
+
 };
 
 #endif // SKIPLISTITEMMODEL_H

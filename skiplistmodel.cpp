@@ -19,8 +19,8 @@ QVariant SkipListModel::data( const QModelIndex& index, int role ) const {
     if ( r < 0 ) {
         return QVariant();
     }
-    NodeItemRef node = nodes.at( r );
-    //    qDebug () << "Index.row" << index.row ();
+    NodeItemRef node = sk.at( r );
+    Q_ASSERT( node );
     if ( role == ElementRole ) {
         return QVariant::fromValue( node->element );
     } else if ( role == OffsetRole ) {
@@ -30,9 +30,7 @@ QVariant SkipListModel::data( const QModelIndex& index, int role ) const {
         int s = node->forward.size();
         for ( int i = 0; i < s; ++i ) {
             NodeItemRef ref = node->forward.value( i );
-            {
-                forward.append( QVariant::fromValue( nodes.indexOf( ref ) ) );
-            }
+            forward.append( QVariant::fromValue( sk.indexOf( ref ) ) );
         }
         return QVariant::fromValue( forward );
     }
@@ -42,7 +40,7 @@ QVariant SkipListModel::data( const QModelIndex& index, int role ) const {
 
 Qt::ItemFlags SkipListModel::flags( const QModelIndex& index ) const /* return ItemIsEditable */ {
     if ( index.isValid() ) {
-        return QAbstractListModel::flags( index );
+        return QAbstractListModel::flags( index ) | Qt::ItemIsEditable;
     }
     return Qt::NoItemFlags;
 }
@@ -55,24 +53,37 @@ void SkipListModel::addItem( const QString& string )
         return;
     }
     p.clear();
-    if ( sk.insert( string ) ) {
-        NodeItemRef node = sk.find( string, p );
-        int index = sk.indexOf( node );
-        // emit dataChanged for all precedings
-        qDebug() << "index" << index;
-        beginInsertRows( QModelIndex(), index, index );
-        nodes.insert( index, node );
-        endInsertRows();
-    }
+    int node_index = sk.indexFor( string );
+
+    beginInsertRows( QModelIndex(), node_index, node_index );
+    sk.insert( string );
+    endInsertRows();
+
+//    if ( sk.insert( string ) ) {
+
+//       // NodeItemRef node = sk.find( string, p );
+
+//        // emit dataChanged for all precedings
+//        for ( auto ref : p ) {
+//            int offset = sk.indexOf( ref );
+//            if ( offset >= 0 && offset + 1 != node_index) {
+////                QVariantList forward;
+////                int s = ref->forward.size();
+////                for ( int i = 1; i < s; ++i ) {
+////                    NodeItemRef f = ref->forward.value( i );
+////                    forward.append( QVariant::fromValue( sk.indexOf( f ) ) );
+////                }
+                beginResetModel();
+                endResetModel();
+//            }
+//        }
+//    }
+
     sk.veto();
     qDebug() << sk();
-    for ( auto ref : nodes ) {
-        qDebug() << ref->element;
-    }
 }
 
-int SkipListModel::count() const
-{
+int SkipListModel::count() const {
     return sk.size();
 }
 
