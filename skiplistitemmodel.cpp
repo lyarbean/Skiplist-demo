@@ -14,7 +14,6 @@ Qt::ItemFlags SkipListListModel::flags(const QModelIndex &index) const
     return Qt::ItemIsDropEnabled;
 }
 
-
 void SkipListListModel::addItem( const QString &string ) {
     QVector<NodeItemRef> p;
     NodeItemRef node = sk.find( string, p );
@@ -25,9 +24,13 @@ void SkipListListModel::addItem( const QString &string ) {
     if ( sk.insert( string ) ) {
         NodeItemRef node = sk.find( string, p );
         int idx = sk.indexOf( node );
-        int height = node->forward.size ();
         beginInsertRows ( QModelIndex(), idx, idx );
+
         endInsertRows ();
+        NodeItemRef ref = p.last();
+        int idy = sk.indexOf(ref);
+        emit dataChanged( index(idy), index(idx) );
+        emit dataChanged( index(idy), index(idx) );
         sk.veto();
     }
 

@@ -16,40 +16,6 @@ Window {
         id: the_model
     }
 
-    Component {
-        id: forwardDelegate
-        Column {
-            property int offset: 0
-            property alias model: repeater.model
-            spacing: 8
-            Repeater {
-                id: repeater
-                delegate: Row {
-                    spacing: 24
-                    Rectangle {
-                        height: 24
-                        radius: 5
-                        color: ["red", "orange", "yellow", "green", "blue", "indigo", "purple"][index]
-                        width: 28
-                        Rectangle {
-                            x: parent.x + 24
-                            y: parent.y + 12
-                            height: 2
-                            color: ["red", "orange", "yellow", "green", "blue", "indigo", "purple"][index]
-                            width: modelData < 0 ? 0 : (modelData - offset) * 32
-                        }
-                        Text {
-                            anchors.centerIn: parent
-                            font.pointSize: 12
-                            text: modelData < 0 ? "x" : modelData
-                            color: index > 2 ? "white" : "black"
-                            font.bold: true
-                        }
-                    }
-                }
-            }
-        }
-    }
     Column {
         anchors.fill: parent
         anchors.leftMargin: 32
@@ -61,7 +27,6 @@ Window {
             model: the_model
             focus: true
             orientation: Qt.Horizontal
-            cacheBuffer: 1
             add: Transition {
                 NumberAnimation { properties: "x,y"; from: 100; duration: 1000 }
             }
@@ -82,15 +47,28 @@ Window {
                     width: 64
                     height: (the_model.height() - forward) * 32
                     ListView {
-                        anchors.fill: parent
+                        //anchors.fill: parent
                         model : the_model.height() - forward
                         delegate :
                             Rectangle {
+                            width: 64
                             height: 32
                             Rectangle {
+                                height: 32
+                                anchors {
+                                    centerIn: parent
+                                    topMargin: 0
+                                    leftMargin: 30
+                                }
+                                width: 4
+                                color : "gray"
+                            }
+                            Rectangle {
                                 width: 64
-                                anchors.leftMargin: 0
-                                anchors.topMargin: 30
+                                anchors {
+                                    centerIn: parent
+                                    topMargin: 14
+                                }
                                 color : "gray"
                                 height: 4
                             }
